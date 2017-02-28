@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<head>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<title>FireDerby</title>
+<style type="text/css">
+.numberpanel {
+  border: solid 2px black;
+  transition: all 0.5s ease;
+}
+.numberpanel.lose {
+  background-color: #888888;
+}
+.numberpanel.win {
+  background-color: #e6bf00; /* hsl(50, 100%, 45%); */
+}
+.numberpanel.win.win1 {
+  background-color: #fff6cc; /* hsl(50, 100%, 90%); */
+}
+.numberpanel.win.win2 {
+  background-color: #ffea80; /* hsl(50, 100%, 75%); */
+}
+.numberpanel.win.win3 {
+  background-color: #ffdd33; /* hsl(50, 100%, 60%); */
+}
+.name {
+  position: relative;
+  left: 100%;
+  border-radius: 5px;
+  transition: all 0.5s ease;
+  border: solid 1px black;
+}
+.name.comp {
+  left: 0%;
+}
+</style>
+</head>
+<body>
+
+<div class="container-fluid">
+  <h1>Fire Derby (Beta)</h1>
+  <div class="row">
+    <div class="col-xs-12">
+      <h2 id="room_name">&nbsp;</h2>
+    </div>
+  </div>
+  <div class="row" id="private_entry_panel" style="display: none;">
+    <div class="col-md-12">
+      <h2>登録者一覧
+        <button type="button" id="finish_entry" class="btn btn-default" style="display: none;">登録締切</button>
+        <button type="button" id="finish_race" class="btn btn-default" style="display: none;">レース終了</button>
+      </h2>
+      <ul class="private-entry-list list-inline" id="private_entry_list">
+      </ul>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-8 col-xs-12" id="raceboard">
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>1</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel1"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>2</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel2"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>3</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel3"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>4</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel4"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>5</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel5"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>6</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel6"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>7</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel7"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>8</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel8"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>9</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel9"></div></div>
+      </div>
+      <div class="row numberpanel">
+        <div class="col-md-1"><h2>10</h2></div>
+        <div class="col-md-11"><div class="row" id="number_panel10"></div></div>
+      </div>
+    </div>
+    <div class="col-md-4 col-xs-12">
+      <div id="entry_form" style="display: none;">
+        <h3>エントリー</h3>
+        <div class="form-inline">
+          <input type="text" id="entry_name" class="form-control" placeholder="名前">
+          <select class="form-control" id="entry_number">
+            <option></option>
+            <option>1</option>
+            <option>2</option>
+            <option>3</option>
+            <option>4</option>
+            <option>5</option>
+            <option>6</option>
+            <option>7</option>
+            <option>8</option>
+            <option>9</option>
+            <option>10</option>
+          </select>
+          <button type="button" class="entry btn btn-default" id="entry">登録</button>
+          <ul class="entry-list list-unstyled" id="public_entries">
+          </ul>
+        </div>
+      </div>
+      <div>
+        <h3>新規レース作成</h3>
+        <div class="input-group">
+          <input type="text" id="game_name" class="form-control" placeholder="レース名">
+          <div class="input-group-btn">
+            <button type="button" class="create-game btn btn-default" id="create_game" disabled="disabled">作成</button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3>参加</h3>
+        <ul class="room-list list-group" id="room_list">
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/3.6.10/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyBU6Zynn-YBJW03LPOXygN-9hP5trxPIuU",
+    authDomain: "firederby.firebaseapp.com",
+    databaseURL: "https://firederby.firebaseio.com",
+    storageBucket: "firederby.appspot.com",
+    messagingSenderId: "1088490753996"
+  };
+  firebase.initializeApp(config);
+</script>
+<script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script type="text/javascript">
+(function ($, FB) {
+  'use strict';
+
+  var Game = {};
+  Game.login = function () {
+    FB.auth().signInAnonymously().then(function(_user) {
+      $('#create_game').on('click', function () {
+        Game.create($('#game_name').val());
+        $('#game_name').val('');
+      }).prop('disabled', false);
+
+      FB.database().ref('rooms').limitToLast(20).on('child_added', function (data) {
+        var key = data.key;
+        var val = data.val();
+        var $icon = $('<span>');
+        var $item = $('<li>').text(val.name).addClass('list-group-item').attr('id', 'room-' + key).data('room_id', key);
+        $icon.addClass('glyphicon playing-icon').addClass(val.status == 'closed' ? 'glyphicon-stop' : 'glyphicon-play');
+        $item.append($('<span>').addClass('badge').append($icon));
+        $('#room_list').prepend($item);
+      })
+      FB.database().ref('rooms').on('child_changed', function (data) {
+        var key = data.key;
+        var val = data.val();
+        var $target = $(document.getElementById('room-' + key)).find('span.playing-icon');
+        $target.removeClass('glyphicon-stop glyphicon-play').addClass(val.status == 'closed' ? 'glyphicon-stop' : 'glyphicon-play');
+      });
+      $('#room_list').on('click', 'li', function () {
+        Game.join($(this).data('room_id'));
+      });
+    })
+    .catch(function(error) { console.log('Login Failed!', error); });
+  }
+
+  Game.leave = function () {
+    if (Game.room) {
+      FB.database().ref('rooms').child(Game.room).off('value');
+      FB.database().ref('public_entries').child(Game.room).off('child_added');
+      FB.database().ref('published_entries').child(Game.room).off('child_added');
+      FB.database().ref('private_entries').child(Game.room).off('child_added');
+      FB.database().ref('published_entries').child(Game.room).off('value');
+    }
+  }
+
+  Game.create = function (name) {
+    Game.leave(Game.room);
+
+    var st = {
+      name: name || 'Anonymous Room',
+      owner: FB.auth().currentUser.uid,
+      status: 'entry',
+    };
+    FB.database().ref('rooms').push(st).then(function (data) {
+      Game.room = data.key;
+      Game.init(Game.room);
+    });
+  }
+
+  Game.init = function (room_id) {
+    FB.database().ref('rooms').child(room_id).on('value', function (data) {
+      $('#room_name').text(data.val().name);
+      $('#entry_form').toggle(data.val().status == 'entry');
+      if (data.val().owner == FB.auth().currentUser.uid) {
+        $('#finish_entry').off('click.finish_entry').on('click.finish_entry', function () {
+          FB.database().ref('rooms').child(room_id).child('status').set('publish');
+        });
+        $('#finish_race').off('click.finish_race').on('click.finish_race', function () {
+          FB.database().ref('rooms').child(room_id).child('status').set('closed');
+        });
+        $('#private_entry_panel').show();
+        FB.database().ref('private_entries').child(room_id).off('child_added');
+        $('#private_entry_list').empty();
+        FB.database().ref('private_entries').child(room_id).on('child_added', function (entry) {
+          var $button = $('<button>')
+            .addClass('btn').addClass('btn-default')
+            .prop('disabled', data.val().status != 'publish')
+            .attr('type', 'button').attr('data-entry_id', entry.key)
+            .data('entry_id', entry.key)
+            .text(entry.val().name + ' ');
+          var $badge = $('<span>').addClass('badge').text(entry.val().number);
+          var $li = $('<li>').append($button.append($badge));
+          $('#private_entry_list').append($li);
+
+          if (data.val().status == 'entry') {
+            FB.database().ref('public_entries').child(room_id).child(entry.key).set({ name: entry.val().name });
+          }
+        });
+
+        if (data.val().status == 'entry') {
+          $('#finish_entry').show();
+          $('#finish_race').hide();
+        }
+
+        if (data.val().status == 'publish') {
+          $('#private_entry_list').on('click.publish', 'button', function () {
+            Game.publish($(this).data('entry_id'));
+          });
+          $('#private_entry_list').find('button').prop('disabled', false);
+          $('#finish_entry').hide();
+          $('#finish_race').show();
+        }
+
+        if (data.val().status == 'closed') {
+          $('#private_entry_list').off('click.publish');
+          $('#private_entry_list').find('button').prop('disabled', true);
+          $('#finish_entry').hide();
+          $('#finish_race').hide();
+          $('#private_entry_panel').hide();
+        }
+      } else {
+        $('#private_entry_panel').hide();
+      }
+    });
+
+    $('#public_entries').empty();
+    FB.database().ref('public_entries').child(room_id).on('child_added', function (data) {
+      $('#public_entries').append($('<li>').text(data.val().name + ' さんが登録しました'));
+    });
+
+    for (var i = 1; i <= 10; ++i) {
+      $('#number_panel' + i).empty();
+    }
+    $('.numberpanel')
+      .removeClass('win').removeClass('lose')
+      .removeClass('win1').removeClass('win2').removeClass('win3')
+    FB.database().ref('published_entries').child(room_id).on('child_added', function (data) {
+      var $div = $('<div>').addClass('col-xs-2').addClass('name').text(data.val().name);
+      $('#number_panel' + data.val().number).append($div);
+      $('#private_entry_list').find('[data-entry_id="' + data.key + '"]').prop('disabled', true);
+      setTimeout(function () { $div.addClass('comp'); }, 100);
+    });
+    FB.database().ref('published_entries').child(room_id).on('value', function (data) {
+      var counts = {};
+      $.each(data.val(), function (key, value) {
+        counts[value.number] = (counts[value.number] || 0) + 1;
+      });
+      for (var i = 1; i <= 10; ++i) {
+        var $panel = $('#number_panel' + i).closest('.numberpanel');
+        if (counts[i] == 1) {
+          $panel.removeClass('lose').addClass('win');
+        } else if (1 < counts[i]) {
+          $panel.removeClass('win').addClass('lose');
+        } else {
+          $panel.removeClass('win').removeClass('lose');
+        }
+      }
+      $('.numberpanel')
+        .removeClass('win1').removeClass('win2').removeClass('win3')
+        .filter('.win').slice(0, 3)
+        .each(function (i) { $(this).addClass('win' + (i+1)); });
+    });
+
+    $('#entry').off('click.entry').on('click.entry', function() {
+      var name = $('#entry_name').val();
+      var num = $('#entry_number').val();
+      $('#entry_name').val('');
+      $('#entry_number').val('');
+      if (!name || name == '' || num <= 0 || 10 < num) { return; }
+      var entry = { name: name, number: num };
+      FB.database().ref('private_entries').child(room_id).push(entry).then(function (data) {
+        FB.database().ref('public_entries').child(room_id).child(data.key).set({ name: name });
+      });
+    });
+
+    $('#private_entry_list').empty();
+  }
+
+  Game.join = function (room_id) {
+    if (Game.room) {
+      Game.leave(Game.room.key);
+    }
+    Game.room = room_id;
+    Game.init(room_id);
+  }
+
+  Game.publish = function (entry_id) {
+    FB.database().ref('private_entries').child(Game.room).child(entry_id).once('value').then(function (data) {
+      FB.database().ref('published_entries').child(Game.room).child(entry_id).set({
+        name: data.val().name,
+        number: data.val().number,
+      });
+    });
+  }
+
+  $(function () { Game.login(); });
+})(jQuery, firebase);
+</script>
+</body>

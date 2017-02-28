@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "rooms": {
+      ".read": true,
+      "$room_id": {
+        ".write": "!data.exists() || data.child('owner').val() === auth.uid"
+      }
+    },
+    "private_entries": {
+      "$room_id": {
+        ".read": "root.child('rooms').child($room_id).child('owner').val() === auth.uid",
+        ".write": "root.child('rooms').child($room_id).child('status').val() === 'entry'"
+      }
+    },
+    "public_entries": {
+      "$room_id": {
+        ".read": true,
+        ".write": "root.child('rooms').child($room_id).child('status').val() === 'entry'"
+      }
+    },
+    "published_entries": {
+      "$room_id": {
+        ".read": true,
+        ".write": "root.child('rooms').child($room_id).child('owner').val() === auth.uid && root.child('rooms').child($room_id).child('status').val() === 'publish'"
+      }
+    }
+  }
+}
